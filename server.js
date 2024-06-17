@@ -2,12 +2,23 @@ const express = require("express");
 const connectDB = require("./config/database");
 const passport = require("passport");
 const dotenv = require("dotenv");
+const morgan = require("morgan");
+const cors = require('cors')
 
-// Load environment variables 
+// Load environment variables
 dotenv.config();
 
 // Initialize Express app
 const app = express();
+
+const corsOptions = {
+  origin: "http://localhost:4200",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+app.use(morgan("dev"));
 
 async function startServer() {
   try {
@@ -20,12 +31,12 @@ async function startServer() {
     // Passport middleware
     app.use(passport.initialize());
 
-    // Passport configuration 
+    // Passport configuration
     require("./config/passport")(passport);
 
     // Routes
     app.use("/api/users", require("./routes/usersRoute"));
-    // app.use("/api/articles", require("./routes/articles")); 
+    app.use("/api/articles", require("./routes/articleRoute"));
 
     // Default route for testing the server
     app.get("/", (req, res) => {

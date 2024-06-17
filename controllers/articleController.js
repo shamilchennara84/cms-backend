@@ -1,4 +1,7 @@
-const Article = require("../models/Article");
+const Article = require("../models/articleModel");
+const mongoose = require("mongoose")
+
+
 
 const validateObjectId = (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -7,16 +10,14 @@ const validateObjectId = (id) => {
   return true;
 };
 
-const getArticles = async (req, res, page = 1, limit = 10) => {
+const getArticles = async (req, res) => {
   try {
-    const articles = await Article.find()
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .populate("author", "username");
+    const articles = await Article.find().populate("author", "username");
+    console.log(articles);
     res.json(articles);
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: "Error fetching articles" }); // More specific
+    res.status(500).json({ msg: "Error fetching articles" });
   }
 };
 
@@ -51,13 +52,13 @@ exports.createArticle = async (req, res) => {
     res.json(article);
   } catch (err) {
     console.error(err.message);
-    // Handle validation errors more specifically if applicable
-    res.status(500).json({ msg: "Error creating article" }); // More specific
+ 
+    res.status(500).json({ msg: "Error creating article" }); 
   }
 };
 
 exports.getArticles = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query; // Allow pagination through query params
+  const { page = 1, limit = 10 } = req.query; 
   getArticles(req, res, page, limit);
 };
 
@@ -68,14 +69,31 @@ exports.getArticle = async (req, res) => {
   }
 
   try {
-    const article = await Article.findById(id).populate("author", "username");
+    const idnew = new mongoose.Types.ObjectId(id)
+    const article = await Article.aggregate([
+      {
+        $match: { _id: idnew },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "authorDetails",
+        },
+      },
+      {
+        $unwind: "$authorDetails",
+      },
+     
+    ]);
     if (!article) {
       return res.status(404).json({ msg: "Article not found" });
     }
-    res.json(article);
+    res.json(article[0]);
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: "Error retrieving article" }); // More specific
+    res.status(500).json({ msg: "Error retrieving article" }); 
   }
 };
 
@@ -87,7 +105,7 @@ exports.updateArticle = async (req, res) => {
   }
 
   try {
-    const article = await authorizeArticle(req, res, id); // Reusable function
+    const article = await authorizeArticle(req, res, id); 
 
     article.title = title;
     article.content = content;

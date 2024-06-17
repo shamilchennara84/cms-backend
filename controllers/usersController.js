@@ -6,7 +6,7 @@ const generateToken = (userId) => {
   return jwt.sign({ user: userId }, process.env.JWT_SECRET, { expiresIn: 3600 });
 };
 
-const register = async (req, res) => {
+exports.register = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
@@ -26,11 +26,11 @@ const register = async (req, res) => {
     res.json({ token });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: "Registration failed" }); 
+    res.status(500).json({ msg: "Registration failed" });
   }
 };
 
-const login = async (req, res) => {
+exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -48,11 +48,6 @@ const login = async (req, res) => {
     res.json({ token });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ msg: "Login failed" }); 
+    res.status(500).json({ msg: "Login failed" });
   }
-};
-
-module.exports = {
-  register,
-  login,
 };

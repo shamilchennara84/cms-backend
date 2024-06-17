@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const articleController  = require("../controllers/articles");
+const articleController  = require("../controllers/articleController");
 
 router.post("/", passport.authenticate("jwt", { session: false }), articleController.createArticle);
 
